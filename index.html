@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProgressBar with Images, Text, and Audio</title>
+<style>
+    .progress-bar-container {
+        width: 300px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #f0f0f0;
+        border-radius: 10px;
+    }
+    .progress {
+        height: 100%;
+        background-color: #4caf50;
+        border-radius: 10px;
+        transition: width 0.1s linear;
+    }
+    .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 10px;
+        border-radius: 5px;
+        background: transparent;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+        position: absolute;
+        bottom: 3px;
+        right: 8px;
+    }
+    .slider:hover {
+        opacity: 1;
+    }
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+        position: relative;
+        z-index: 2;
+    }
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+        position: relative;
+        z-index: 2;
+    }
+    .btn-container {
+        margin-top: 10px;
+    }
+    .image-container {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+    }
+    .image {
+        display: none;
+        width: 500px; /* Adjust the width as needed */
+        height: auto; /* Automatically adjust height */
+    }
+    .text-overlay {
+        position: absolute;
+        bottom: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: black;
+        color: white;
+        padding: 5px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        opacity: 0.7;
+        z-index: 3;
+    }
+</style>
+</head>
+<body>
+
+<audio id="audio" src="song.mp3"></audio>
+
+<div class="progress-bar-container">
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+    <input type="range" min="0" max="100" value="0" class="slider" id="slider">
+</div>
+<div class="btn-container">
+    <button onclick="togglePlayPause()">Play/Pause</button>
+</div>
+<div class="image-container">
+    <img src="image.jpg" alt="Image 1" class="image" id="image1">
+    <img src="image2.jpeg" alt="Image 2" class="image" id="image2">
+    <img src="image.jpg" alt="Image 3" class="image" id="image3">
+    <img src="image2.jpeg" alt="Image 4" class="image" id="image4">
+</div>
+<p id="percentage">0%</p>
+
+<script>
+    const progress = document.getElementById("progress");
+    const slider = document.getElementById("slider");
+    const percentageDisplay = document.getElementById("percentage");
+    const textOverlay = document.getElementById("textOverlay");
+    const images = document.querySelectorAll(".image");
+    const audio = document.getElementById("audio");
+
+    let interval;
+    let isPlaying = false;
+
+    function fillProgressBar() {
+        interval = setInterval(() => {
+            const progressPercentage = (audio.currentTime / audio.duration) * 100;
+            updateProgress(progressPercentage);
+            if (audio.ended) {
+                clearInterval(interval);
+                isPlaying = false;
+            }
+        }, 100);
+    }
+
+    function togglePlayPause() {
+        if (!isPlaying) {
+            audio.play();
+            isPlaying = true;
+            fillProgressBar();
+        } else {
+            audio.pause();
+            isPlaying = false;
+            clearInterval(interval);
+            interval = null;
+        }
+    }
+
+    function updateProgress(value) {
+        progress.style.width = value + "%";
+        slider.value = value;
+        percentageDisplay.textContent = value.toFixed(2) + "%";
+        
+        // Display the appropriate image based on the progress
+        if (value >= 0 && value < 20) {
+            showImage("image1");
+        } else if (value >= 20 && value < 40) {
+            showImage("image2");
+        } else if (value >= 40 && value < 60) {
+            showImage("image2");
+        } else if (value >= 60 && value < 70) {
+            showImage("image3");
+        } else {
+            showImage("image4"); // Change this to the desired image when value is between 70 and 100%
+        }
+    }
+
+    function showImage(imageId) {
+        images.forEach(image => {
+            if (image.id === imageId) {
+                image.style.display = "block";
+            } else {
+                image.style.display = "none";
+            }
+        });
+    }
+
+    slider.addEventListener("input", () => {
+        const value = slider.value;
+        const newPosition = (value / 100) * audio.duration;
+        audio.currentTime = newPosition;
+        updateProgress(value);
+    });
+
+    audio.addEventListener("timeupdate", () => {
+        if (!isPlaying) return;
+        const progressPercentage = (audio.currentTime / audio.duration) * 100;
+        updateProgress(progressPercentage);
+    });
+
+    audio.addEventListener("ended", () => {
+        isPlaying = false;
+    });
+</script>
+
+</body>
+</html>
